@@ -26,8 +26,8 @@ def train_model_logic(csv_url, email, callback_url=None):
     try:
         print(f"Starting general training for {email} with data from {csv_url}")
         
-        # 1. Load Dataset (Limit to 7,500 rows for high accuracy + sub-20s speed)
-        df = pd.read_csv(csv_url, nrows=7500)
+        # 1. Load Dataset (Limit to 3,000 rows for guaranteed speed on Render)
+        df = pd.read_csv(csv_url, nrows=3000)
         
         # 2. Identify Target Column (Assume last column is target)
         target_col = df.columns[-1]
@@ -103,8 +103,8 @@ def train_model_logic(csv_url, email, callback_url=None):
         
         # 8. Model Training
         if problem_type == "classification":
-            # Balanced settings: 50 trees is robust but fast on 7.5k rows
-            model = RandomForestClassifier(n_estimators=50, max_depth=12, min_samples_split=5, random_state=42)
+            # Extreme Speed: 20 trees is very fast
+            model = RandomForestClassifier(n_estimators=20, max_depth=10, random_state=42)
             model.fit(X_train, y_train)
 
             y_pred = model.predict(X_test)
@@ -118,14 +118,12 @@ def train_model_logic(csv_url, email, callback_url=None):
                 "message": f"Training successful! Accuracy: {accuracy*100:.2f}% (Model: Random Forest)"
             }
         else:
-            model = RandomForestRegressor(n_estimators=50, max_depth=12, min_samples_split=5, random_state=42)
+            model = RandomForestRegressor(n_estimators=20, max_depth=10, random_state=42)
             model.fit(X_train, y_train)
             y_pred = model.predict(X_test)
-            
             mse = mean_squared_error(y_test, y_pred)
             rmse = np.sqrt(mse)
             r2 = r2_score(y_test, y_pred)
-            
             result = {
                 "status": "Complete", 
                 "message": f"Training successful! (Model: Random Forest)",
