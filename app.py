@@ -26,8 +26,8 @@ def train_model_logic(csv_url, email, callback_url=None):
     try:
         print(f"Starting general training for {email} with data from {csv_url}")
         
-        # 1. Load Dataset
-        df = pd.read_csv(csv_url)
+        # 1. Load Dataset (Limit to 7,500 rows for high accuracy + sub-20s speed)
+        df = pd.read_csv(csv_url, nrows=7500)
         
         # 2. Identify Target Column (Assume last column is target)
         target_col = df.columns[-1]
@@ -103,9 +103,8 @@ def train_model_logic(csv_url, email, callback_url=None):
         
         # 8. Model Training
         if problem_type == "classification":
-            # Random Forest with 30-50 trees is usually much more accurate than a Decision Tree
-            # and still fast enough for Render
-            model = RandomForestClassifier(n_estimators=30, max_depth=15, random_state=42)
+            # Balanced settings: 50 trees is robust but fast on 7.5k rows
+            model = RandomForestClassifier(n_estimators=50, max_depth=12, min_samples_split=5, random_state=42)
             model.fit(X_train, y_train)
 
             y_pred = model.predict(X_test)
@@ -119,7 +118,7 @@ def train_model_logic(csv_url, email, callback_url=None):
                 "message": f"Training successful! Accuracy: {accuracy*100:.2f}% (Model: Random Forest)"
             }
         else:
-            model = RandomForestRegressor(n_estimators=30, max_depth=15, random_state=42)
+            model = RandomForestRegressor(n_estimators=50, max_depth=12, min_samples_split=5, random_state=42)
             model.fit(X_train, y_train)
             y_pred = model.predict(X_test)
             
