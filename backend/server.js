@@ -20,6 +20,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ✅ Health Check Route
+app.get("/", (req, res) => {
+  res.json({ status: "success", message: "ML Training Backend is Running!" });
+});
+
 // ✅ Ensure uploads folder exists
 const UPLOAD_DIR = "uploads";
 if (!fs.existsSync(UPLOAD_DIR)) {
