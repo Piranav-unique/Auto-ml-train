@@ -7,7 +7,8 @@ import requests
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, mean_squared_error, r2_score
 from xgboost import XGBClassifier, XGBRegressor
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.impute import SimpleImputer
 
 # 1. Define the Modal Image
 image = modal.Image.debian_slim().pip_install(
@@ -40,8 +41,8 @@ def train_model_logic(csv_url, email):
             for chunk in r.iter_content(chunk_size=8192):
                 buffer.write(chunk)
             buffer.seek(0)
-            # Increased rows for better accuracy
-            df = pd.read_csv(buffer, nrows=20000)
+            # Increased rows for maximum accuracy (50k is safe for 4GB memory)
+            df = pd.read_csv(buffer, nrows=50000)
             log(f"CSV Loaded. Shape: {df.shape}")
         except Exception as e:
             log(f"Download FAILED: {str(e)}")
@@ -71,12 +72,22 @@ def train_model_logic(csv_url, email):
         X = df.drop(columns=[target_col])
         y = df[target_col]
 
-        # Handle Categorical Columns for Scikit-Learn (Label Encode)
+        # Handle Categorical Columns (Label Encode)
         cat_cols = X.select_dtypes(include=['object']).columns
-        log(f"Encoding {len(cat_cols)} categorical columns...")
+        log(f"Processing {len(cat_cols)} categorical and numeric columns...")
         for col in cat_cols:
             le = LabelEncoder()
             X[col] = le.fit_transform(X[col].astype(str).fillna("Missing"))
+
+        # Handle Missing Values and Scaling for Numeric Data
+        num_cols = X.select_dtypes(include=[np.number]).columns
+        if not num_cols.empty:
+            imputer = SimpleImputer(strategy='mean')
+            X[num_cols] = imputer.fit_transform(X[num_cols])
+            
+            scaler = StandardScaler()
+            X[num_cols] = scaler.fit_transform(X[num_cols])
+            log("Numeric data imputed and scaled for better performance.")
 
         # Determine Problem Type
         n_unique_y = y.nunique()
@@ -103,14 +114,17 @@ def train_model_logic(csv_url, email):
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         
         if problem_type == "classification":
-            # Powerful hyperparameters for XGBoost
+            # Deep Learning optimized XGBoost for high accuracy
             model = XGBClassifier(
-                n_estimators=1000, 
-                max_depth=6, 
-                learning_rate=0.05,
-                early_stopping_rounds=50,
+                n_estimators=1500, 
+                max_depth=8, 
+                learning_rate=0.03,
+                subsample=0.8,
+                colsample_bytree=0.8,
+                early_stopping_rounds=100,
                 random_state=42,
-                tree_method="hist" # Fast histogram optimized
+                tree_method="hist",
+                objective='multi:softprob' if len(le_y.classes_) > 2 else 'binary:logistic'
             )
             model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=False)
             acc = accuracy_score(y_test, model.predict(X_test))
@@ -123,10 +137,12 @@ def train_model_logic(csv_url, email):
             }
         else:
             model = XGBRegressor(
-                n_estimators=1000, 
-                max_depth=6, 
-                learning_rate=0.05,
-                early_stopping_rounds=50,
+                n_estimators=1500, 
+                max_depth=8, 
+                learning_rate=0.03,
+                subsample=0.8,
+                colsample_bytree=0.8,
+                early_stopping_rounds=100,
                 random_state=42,
                 tree_method="hist"
             )
