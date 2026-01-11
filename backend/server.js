@@ -108,6 +108,7 @@ app.post(
         message: "CSV uploaded & ML training started",
         csvUrl,
         email,
+        callback_url: n8nCallbackUrl,
       });
     } catch (error) {
       console.error("Upload error:", error.message);
