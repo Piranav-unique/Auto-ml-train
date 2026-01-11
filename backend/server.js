@@ -25,6 +25,11 @@ app.get("/", (req, res) => {
   res.json({ status: "success", message: "ML Training Backend is Running!" });
 });
 
+// ✅ Test POST Route (For debugging SSL/Network issues)
+app.post("/api/test-post", (req, res) => {
+  res.json({ status: "success", message: "POST connection working!" });
+});
+
 // ✅ Ensure uploads folder exists
 const UPLOAD_DIR = "uploads";
 if (!fs.existsSync(UPLOAD_DIR)) {
