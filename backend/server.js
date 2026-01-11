@@ -86,7 +86,7 @@ app.post(
 
       // ✅ Trigger n8n Workflow 1 (START TRAINING)
       const n8nUploadUrl = process.env.N8N_UPLOAD_WEBHOOK || "https://n8n-1-wpup.onrender.com/webhook/ml-upload";
-      const n8nCallbackUrl = process.env.N8N_CALLBACK_URL || "https://n8n-1-wpup.onrender.com/webhook/ml-callback";
+      const n8nCallbackUrl = process.env.N8N_CALLBACK_URL || "https://auto-ml-train.onrender.com/api/callback";
 
       await axios.post(
         n8nUploadUrl,
@@ -103,7 +103,6 @@ app.post(
 
       console.log("n8n workflow triggered successfully");
 
-      // ✅ Response to frontend
       res.json({
         status: "success",
         message: "CSV uploaded & ML training started",
@@ -119,6 +118,18 @@ app.post(
     }
   }
 );
+
+// ✅ Callback API (Receive results from n8n)
+app.post("/api/callback", async (req, res) => {
+  try {
+    console.log("Callback received from n8n:", req.body);
+    // You can add logic here to save results to Supabase or notify the user
+    res.json({ status: "success", message: "Callback processed" });
+  } catch (error) {
+    console.error("Callback error:", error.message);
+    res.status(500).json({ status: "error", message: "Failed to process callback" });
+  }
+});
 
 // ✅ Start server (Render-compatible)
 const PORT = process.env.PORT || 5000;
