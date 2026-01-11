@@ -183,8 +183,8 @@ def train_model_logic(csv_url, email):
             result = {
                 "status": "Complete", 
                 "metrics": {"r2": float(r2), "rmse": float(np.sqrt(mse))},
-                "display_metric": f"{r2:.4f} (R2 Score)",
-                "message": f"High-precision XGBoost model trained! R2 Score: {r2:.4f}."
+                "display_metric": f"{r2 * 100:.2f}%",
+                "message": f"High-precision XGBoost model trained on {len(df)} rows! R2 Score: {r2*100:.2f}%."
             }
             
         log("FINISHED.")
