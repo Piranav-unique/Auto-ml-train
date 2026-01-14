@@ -138,10 +138,57 @@ function UploadDataset() {
 
                 {status === "completed" && result && (
                     <div className="result-card">
-                        <p className="result-label">Model Performance</p>
-                        <h2 className="result-value">{result.display_metric}</h2>
-                        <p style={{ fontSize: '0.875rem' }}>{result.message}</p>
-                        <button onClick={() => setStatus("idle")} style={{ marginTop: '1.5rem', background: 'rgba(255,255,255,0.1)' }}>
+                        <div className="result-header">
+                            <div className="success-icon">✓</div>
+                            <h2 className="result-title">Training Complete!</h2>
+                            <p className="result-subtitle">Your ML model has been successfully trained</p>
+                        </div>
+
+                        <div className="metric-showcase">
+                            <div className="metric-badge">
+                                <span className="metric-label">Model Performance</span>
+                                <span className="metric-value">{result.display_metric}</span>
+                            </div>
+                        </div>
+
+                        <div className="result-details">
+                            <div className="detail-item">
+                                <span className="detail-icon">📊</span>
+                                <div className="detail-content">
+                                    <p className="detail-label">Algorithm</p>
+                                    <p className="detail-value">XGBoost (Gradient Boosting)</p>
+                                </div>
+                            </div>
+                            <div className="detail-item">
+                                <span className="detail-icon">⚡</span>
+                                <div className="detail-content">
+                                    <p className="detail-label">Status</p>
+                                    <p className="detail-value">Ready for Production</p>
+                                </div>
+                            </div>
+                            <div className="detail-item">
+                                <span className="detail-icon">📧</span>
+                                <div className="detail-content">
+                                    <p className="detail-label">Email Report</p>
+                                    <p className="detail-value">Sent to {email}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="result-message">
+                            <p>{result.message}</p>
+                        </div>
+
+                        <button
+                            onClick={() => {
+                                setStatus("idle");
+                                setCsv(null);
+                                setEmail("");
+                                setResult(null);
+                                setProgress(0);
+                            }}
+                            className="train-another-btn"
+                        >
                             Train Another Model
                         </button>
                     </div>
